@@ -8,17 +8,19 @@ import { ImageIcon, Loader2Icon, SendIcon } from "lucide-react";
 import { Button } from "./ui/button";
 import { createPost } from "@/actions/post.actions";
 import toast from "react-hot-toast";
+import ImageUpload from "./ImageUpload";
 const CreatePost = () => {
   const { user } = useUser();
-  console.log("user", user);
+
   const [content, setContent] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [isPosting, setIsPosting] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [showImageUpload, setShowImageUpload] = useState(false);
 
   const handleSubmit = async () => {
     try {
-      if (isPosting || (!content.trim() && !imageUrl) || !user) return;
+      if (isPosting || isUploadingImage || (!content.trim() && !imageUrl) || !user) return;
       setIsPosting(true);
       const result = await createPost({
         content,
@@ -57,18 +59,20 @@ const CreatePost = () => {
             />
           </div>
 
-          {/* {(showImageUpload || imageUrl) && (
+          {(showImageUpload || imageUrl) && (
             <div className="border rounded-lg p-4">
               <ImageUpload
                 endpoint="postImage"
                 value={imageUrl}
+                onUploadBegin={() => setIsUploadingImage(true)}
                 onChange={(url) => {
+                  setIsUploadingImage(false);
                   setImageUrl(url);
                   if (!url) setShowImageUpload(false);
                 }}
               />
             </div>
-          )} */}
+          )}
 
           <div className="flex items-center justify-between border-t pt-4">
             <div className="flex space-x-2">
@@ -77,6 +81,8 @@ const CreatePost = () => {
                 variant="ghost"
                 size="sm"
                 className="text-muted-foreground hover:text-primary"
+                onClick={() => setShowImageUpload(!showImageUpload)}
+                disabled={isPosting}
               >
                 <ImageIcon className="size-4 mr-2" />
                 Photo
@@ -85,12 +91,22 @@ const CreatePost = () => {
             <Button
               className="flex items-center"
               onClick={handleSubmit}
-              disabled={isPosting || (content.trim() === "" && !imageUrl)}
+              disabled={
+                isPosting ||
+                isUploadingImage ||
+                (showImageUpload && !imageUrl && !content.trim()) ||
+                (!content.trim() && !imageUrl)
+              }
             >
               {isPosting ? (
                 <>
                   <Loader2Icon className="size-4 mr-2 animate-spin" />
                   Posting...
+                </>
+              ) : isUploadingImage ? (
+                <>
+                  <Loader2Icon className="size-4 mr-2 animate-spin" />
+                  Uploading...
                 </>
               ) : (
                 <>

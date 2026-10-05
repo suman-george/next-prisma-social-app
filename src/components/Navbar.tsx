@@ -7,7 +7,7 @@ import { syncUser } from "@/actions/user.action";
 
 const Navbar = async () => {
   const user = await currentUser();
-  console.log(user, "user user");
+
   if (user) {
     await syncUser();
   }
